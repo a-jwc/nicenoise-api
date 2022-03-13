@@ -1,0 +1,23 @@
+yarn run v1.22.5
+$ /home/ajwc/my-projects/soundbetter-api/node_modules/.bin/prisma migrate dev --name name -
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "soundbetter", schema "public" at "localhost:5432"
+
+Applying migration `20220313072118_name`
+
+The following migration(s) have been created and applied from new schema changes:
+
+migrations/
+  └─ 20220313072118_name/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (3.10.0 | library) to ./node_modules/@prisma/client in
+ 54ms
+
+
+Done in 13.88s.
