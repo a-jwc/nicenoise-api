@@ -21,11 +21,23 @@ export class AuthController {
   @Post('login')
   async login(@Request() req, @Res() response: Response) {
     const token = this.authService.getJwtToken(req.user);
-    response.cookie('token', token, {
-      expires: new Date(new Date().getTime() + 30 * 1000),
+    response.cookie('Authentication', token, {
+      expires: new Date(new Date().getTime() + 60 * 1000 * 60),
       httpOnly: true,
+      sameSite: 'strict',
     });
     return response.send(req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  async logout(@Request() request, @Res() response: Response) {
+    response.cookie('Authentication', '', {
+      httpOnly: true,
+      sameSite: 'strict',
+      maxAge: 0,
+    });
+    return response.sendStatus(200);
   }
 
   @Post('register')
@@ -35,9 +47,10 @@ export class AuthController {
   ) {
     const user = await this.authService.register(registrationData);
     const token = this.authService.getJwtToken(user);
-    response.cookie('token', token, {
-      expires: new Date(new Date().getTime() + 30 * 1000),
+    response.cookie('Authentication', token, {
+      expires: new Date(new Date().getTime() + 60 * 1000 * 60),
       httpOnly: true,
+      sameSite: 'strict',
     });
     return response.send(user);
   }
