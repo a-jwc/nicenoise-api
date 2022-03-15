@@ -24,10 +24,21 @@ export class SoundsService {
     return this.prismaService.sound.findUnique({ where: { id: idNum } });
   }
 
-  async readMany(order: Prisma.SortOrder): Promise<Sound[]> {
+  async readOrderedMany(order: Prisma.SortOrder): Promise<Sound[]> {
     return this.prismaService.sound.findMany({
       take: 10,
       orderBy: [{ uploadDate: order }],
+    });
+  }
+
+  async readFilteredMany(
+    id: Prisma.SoundWhereUniqueInput,
+    order: Prisma.SortOrder,
+  ) {
+    const idNum = +id;
+    return this.prismaService.user.findMany({
+      where: { id: idNum },
+      include: { posts: { orderBy: [{ uploadDate: order }] } },
     });
   }
 

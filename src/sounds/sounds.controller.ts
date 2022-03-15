@@ -94,7 +94,17 @@ export class SoundsController {
   // }
 
   @Get()
-  async getMany(@Query('order') order: Prisma.SortOrder) {
-    return await this.soundService.readMany(order);
+  async getOrderedMany(@Query('order') order: Prisma.SortOrder) {
+    return await this.soundService.readOrderedMany(order);
+  }
+
+  @Get('user/:id')
+  async getSoundsFromUser(
+    @Param('id') id,
+    @Query('order') order: Prisma.SortOrder,
+  ) {
+    const data = await this.soundService.readFilteredMany(id, order);
+    const { posts } = data[0];
+    return posts;
   }
 }
