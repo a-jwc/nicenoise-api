@@ -46,7 +46,7 @@ export class SoundsController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: './public',
+        destination: './public/uploadedSounds',
         filename: (_req, file, cb) => {
           const ext = file.mimetype.split('/')[1];
           cb(null, `${uuidv4()}-${Date.now()}.${ext}`);

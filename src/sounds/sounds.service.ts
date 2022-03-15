@@ -45,7 +45,10 @@ export class SoundsService {
       const { range } = request.headers;
       if (range) {
         const { sound } = data;
-        const soundPath = join(process.cwd(), `./public/${sound}`);
+        const soundPath = join(
+          process.cwd(),
+          `./public/uploadedSounds/${sound}`,
+        );
         const soundStat = statSync(soundPath);
         const CHUNK_SIZE = 1 * 1e6;
         const start = Number(range.replace(/\D/g, ''));

@@ -11,7 +11,7 @@ import { UsersModule } from 'src/users/users.module';
   imports: [
     MulterModule.register({
       storage: diskStorage({
-        destination: './public',
+        destination: './public/uploadedSounds',
         filename: (req, file, cb) => {
           const ext = file.mimetype.split('/')[1];
           cb(null, `${uuidv4()}-${Date.now()}.${ext}`);
