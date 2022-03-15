@@ -88,8 +88,13 @@ export class SoundsController {
     return await this.soundService.stream(id, response, request);
   }
 
-  @Post('delete/:id')
-  async delete(@Param('id') id) {
-    return await this.soundService.delete(id);
+  // @Post('delete/:id')
+  // async delete(@Param('id') id) {
+  //   return await this.soundService.delete(id);
+  // }
+
+  @Get()
+  async getMany(@Query('order') order: Prisma.SortOrder) {
+    return await this.soundService.readMany(order);
   }
 }

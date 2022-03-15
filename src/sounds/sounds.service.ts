@@ -24,6 +24,13 @@ export class SoundsService {
     return this.prismaService.sound.findUnique({ where: { id: idNum } });
   }
 
+  async readMany(order: Prisma.SortOrder): Promise<Sound[]> {
+    return this.prismaService.sound.findMany({
+      take: 10,
+      orderBy: [{ uploadDate: order }],
+    });
+  }
+
   async stream(
     id: Prisma.SoundWhereUniqueInput,
     response: Response,
@@ -42,15 +49,18 @@ export class SoundsService {
         const soundStat = statSync(soundPath);
         const CHUNK_SIZE = 1 * 1e6;
         const start = Number(range.replace(/\D/g, ''));
-        let contentType = 'audio/mpeg';
+        const contentType = 'audio/mpeg';
         // if (start === 0) contentType = 'multipart/byteranges';
         const end = Math.min(start + CHUNK_SIZE, soundStat.size - 1);
-        const soundLength = end - start + 1;
-        response.status(206);
+        // const soundLength = end - start + 1;
+        // response.status(206);
         response.header({
-          'Content-Range': `bytes ${start}-${end}/${soundStat.size}`,
-          'Accept-Ranges': 'bytes',
-          'Content-length': soundLength,
+          // 'Content-Range': `bytes ${start}-${end}/${soundStat.size}`,
+          // 'Content-Range': `bytes ${start}-${soundStat.size - 1}/${
+          //   soundStat.size
+          // }`,
+          // 'Accept-Ranges': 'bytes',
+          'Content-length': soundStat.size,
           'Content-Type': contentType,
         });
         const stream = createReadStream(soundPath);
