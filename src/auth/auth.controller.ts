@@ -13,7 +13,7 @@ import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { LocalAuthGuard } from './local-auth.guard';
 
-@Controller('auth')
+@Controller('api/v1/auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -32,12 +32,8 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   async logout(@Request() request, @Res() response: Response) {
-    response.cookie('Authentication', '', {
-      httpOnly: true,
-      sameSite: 'strict',
-      maxAge: 0,
-    });
-    return response.sendStatus(200);
+    response.clearCookie('Authentication');
+    return response.json('Logged out');
   }
 
   @Post('register')
@@ -53,11 +49,5 @@ export class AuthController {
       sameSite: 'strict',
     });
     return response.send(user);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get('profile')
-  getProfile(@Request() req) {
-    return req.user;
   }
 }

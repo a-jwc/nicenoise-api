@@ -11,18 +11,21 @@ datasource db {
 }
 
 model User {
-  id       Int    @id @default(autoincrement())
-  email    String @unique
-  username String @unique
+  id       Int     @id @default(autoincrement())
+  email    String  @unique
+  username String  @unique
   password String
-  posts    Post[]
+  posts    Sound[]
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
-  title     String
-  published Boolean? @default(false)
-  author    User?    @relation(fields: [authorId], references: [id])
-  authorId  Int?
-  sound     String?
+model Sound {
+  id         Int      @id @default(autoincrement())
+  title      String?
+  published  Boolean? @default(false)
+  author     User?    @relation(fields: [authorId], references: [id])
+  authorName String   
+  authorId   Int?
+  sound      String
+  uploadDate DateTime @default(now())
+  coverImage String?
 }
