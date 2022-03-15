@@ -8,8 +8,11 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
-  getProfile(@Req() req) {
-    return req.user;
+  async getProfile(@Req() req) {
+    const { password, ...result } = await this.userService.user({
+      id: req.user.id,
+    });
+    return result;
   }
 
   @UseGuards(JwtAuthGuard)
