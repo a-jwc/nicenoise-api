@@ -16,6 +16,7 @@ model User {
   username String  @unique
   password String
   posts    Sound[]
+  avatar   String?
 }
 
 model Sound {
@@ -23,9 +24,10 @@ model Sound {
   title      String?
   published  Boolean? @default(false)
   author     User?    @relation(fields: [authorId], references: [id])
-  authorName String   
+  authorName String
   authorId   Int?
   sound      String
   uploadDate DateTime @default(now())
   coverImage String?
+  likes      Int?     @default(1)
 }
