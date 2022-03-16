@@ -38,7 +38,7 @@ export class SoundsService {
     const idNum = +id;
     return this.prismaService.user.findMany({
       where: { id: idNum },
-      include: { posts: { orderBy: [{ uploadDate: order }] } },
+      include: { Sounds: { orderBy: [{ uploadDate: order }] } },
     });
   }
 
@@ -88,7 +88,17 @@ export class SoundsService {
   }
 
   async delete(where: Prisma.SoundWhereUniqueInput) {
-    console.log(where);
     this.prismaService.sound.delete({ where });
+  }
+
+  async updateSound(params: {
+    where: Prisma.SoundWhereUniqueInput;
+    data: Prisma.SoundUpdateInput;
+  }): Promise<Sound> {
+    const { where, data } = params;
+    return this.prismaService.sound.update({
+      data,
+      where,
+    });
   }
 }
