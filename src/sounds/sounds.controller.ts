@@ -69,7 +69,7 @@ export class SoundsController {
       sound: file.filename,
       uploadDate: new Date(Date.now()).toISOString(),
     };
-    const newSound = this.soundService.create(requestBody);
+    const newSound = await this.soundService.create(requestBody);
     return response.status(HttpStatus.CREATED).json({ newSound });
   }
 
