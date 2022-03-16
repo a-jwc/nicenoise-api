@@ -21,14 +21,16 @@ import { Prisma, Sound } from '@prisma/client';
 import { Response, Request } from 'express';
 import { diskStorage } from 'multer';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { UsersService } from 'src/users/users.service';
 import { SoundsService } from './sounds.service';
 import { v4 as uuidv4 } from 'uuid';
+import { LikesService } from 'src/likes/likes.service';
+import { UsersService } from 'src/users/users.service';
 
 @Controller('api/v1/sounds')
 export class SoundsController {
   constructor(
     private readonly soundService: SoundsService,
+    private readonly likesService: LikesService,
     private readonly userService: UsersService,
   ) {}
 
@@ -75,7 +77,6 @@ export class SoundsController {
 
   @Get('info/:id')
   async get(@Param('id') id) {
-    console.log(id);
     return await this.soundService.readById(id);
   }
 
@@ -104,7 +105,30 @@ export class SoundsController {
     @Query('order') order: Prisma.SortOrder,
   ) {
     const data = await this.soundService.readFilteredMany(id, order);
-    const { posts } = data[0];
-    return posts;
+    const { Sounds } = data[0];
+    return Sounds;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('like/:id')
+  async like(@Param('id') id, @Req() req, @Res() res: Response) {
+    const sound = await this.soundService.readById(id);
+    const user = await this.userService.user({ id: req.user.id });
+    const data: Prisma.LikesCreateInput = {
+      Sound: { connect: { id: sound.id } },
+      likedBy: { connect: { id: user.id } },
+    };
+    const likes = await this.likesService.create(data);
+    if (likes === null) {
+      res.status(HttpStatus.FORBIDDEN).send({ message: 'Already liked' });
+      return;
+    }
+    const soundId: number = +id;
+    const likesCount = await this.likesService.aggCount(soundId);
+    const update = await this.soundService.updateSound({
+      where: { id: sound.id },
+      data: { likesCount },
+    });
+    res.status(HttpStatus.OK).send({ likesCount });
   }
 }

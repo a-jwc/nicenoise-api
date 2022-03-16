@@ -10,15 +10,17 @@ import { UsersService } from './users/users.service';
 import { SoundsModule } from './sounds/sounds.module';
 import { SoundsController } from './sounds/sounds.controller';
 import { SoundsService } from './sounds/sounds.service';
+import { LikesService } from './likes/likes.service';
+import { LikesModule } from './likes/likes.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, SoundsModule],
+  imports: [AuthModule, UsersModule, SoundsModule, LikesModule],
   controllers: [
     AppController,
     AuthController,
     UserController,
     SoundsController,
   ],
-  providers: [AppService, UsersService, PrismaService, SoundsService],
+  providers: [AppService, UsersService, PrismaService, SoundsService, LikesService],
 })
 export class AppModule {}
