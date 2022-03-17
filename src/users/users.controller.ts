@@ -16,8 +16,6 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { UsersService } from './users.service';
 import { v4 as uuidv4 } from 'uuid';
 import { Response } from 'express';
-import { statSync } from 'fs';
-import { join } from 'path';
 
 @Controller('api/v1/user')
 export class UserController {
@@ -26,9 +24,10 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   async getProfile(@Req() req) {
-    const { password, ...result } = await this.userService.user({
-      id: req.user.id,
-    });
+    const { password, ...result } =
+      await this.userService.getUserLikesSoundObject({
+        id: req.user.id,
+      });
     return result;
   }
 

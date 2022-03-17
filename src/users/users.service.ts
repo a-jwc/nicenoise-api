@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { User, Prisma } from '@prisma/client';
+import { exclude } from 'src/helpers/helpers';
 
 @Injectable()
 export class UsersService {
@@ -11,6 +12,42 @@ export class UsersService {
   ): Promise<User | null> {
     return this.prisma.user.findUnique({
       where: userWhereUniqueInput,
+    });
+  }
+
+  async getUserLikesSoundObject(
+    userWhereUniqueInput: Prisma.UserWhereUniqueInput,
+  ): Promise<User | null> {
+    return this.prisma.user.findUnique({
+      where: userWhereUniqueInput,
+      include: {
+        likes: {
+          include: {
+            sound: true,
+          },
+        },
+        sounds: true,
+      },
+    });
+  }
+
+  async getUserLikesAuthorInfo(
+    userWhereUniqueInput: Prisma.UserWhereUniqueInput,
+  ) {
+    return this.prisma.user.findUnique({
+      where: userWhereUniqueInput,
+      select: {
+        ...exclude('user', ['password']),
+        likes: {
+          include: {
+            sound: {
+              select: {
+                ...exclude('user', ['password']),
+              },
+            },
+          },
+        },
+      },
     });
   }
 
