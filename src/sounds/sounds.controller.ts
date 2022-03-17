@@ -34,6 +34,11 @@ export class SoundsController {
     private readonly userService: UsersService,
   ) {}
 
+  @Get()
+  async getOrderedMany(@Query('order') order: Prisma.SortOrder) {
+    return await this.soundService.readOrderedMany(order);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Post('upload')
   // @UseInterceptors(
@@ -94,29 +99,27 @@ export class SoundsController {
   //   return await this.soundService.delete(id);
   // }
 
-  @Get()
-  async getOrderedMany(@Query('order') order: Prisma.SortOrder) {
-    return await this.soundService.readOrderedMany(order);
-  }
-
   @Get('user/:id')
   async getSoundsFromUser(
     @Param('id') id,
     @Query('order') order: Prisma.SortOrder,
   ) {
     const data = await this.soundService.readFilteredMany(id, order);
-    const { Sounds } = data[0];
-    return Sounds;
+    if (data.length === 0) return [];
+    const { sounds } = data[0];
+    return sounds;
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('like/:id')
   async like(@Param('id') id, @Req() req, @Res() res: Response) {
     const sound = await this.soundService.readById(id);
-    const user = await this.userService.user({ id: req.user.id });
+    const likedByUser = await this.userService.user({ id: req.user.id });
+    const author = await this.userService.user({ id: sound.authorId });
     const data: Prisma.LikesCreateInput = {
-      Sound: { connect: { id: sound.id } },
-      likedBy: { connect: { id: user.id } },
+      sound: { connect: { id: sound.id } },
+      likedBy: { connect: { id: likedByUser.id } },
+      author: { connect: { id: author.id } },
     };
     const likes = await this.likesService.create(data);
     if (likes === null) {

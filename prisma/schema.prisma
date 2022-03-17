@@ -15,9 +15,10 @@ model User {
   email    String  @unique
   username String  @unique
   password String
-  Sounds   Sound[]
+  sounds   Sound[]
   avatar   String?
-  Likes    Likes[]
+  likes    Likes[] @relation("LikedSounds")
+  hasLikes Likes[] @relation("SoundsWithLikes")
 }
 
 model Sound {
@@ -30,14 +31,17 @@ model Sound {
   sound      String
   uploadDate DateTime @default(now())
   coverImage String?
-  Likes      Likes[]
+  likes      Likes[]
   likesCount Int      @default(0)
 }
 
+// store the author user
 model Likes {
-  id      Int   @id @default(autoincrement())
-  Sound   Sound @relation(fields: [soundId], references: [id])
-  soundId Int
-  likedBy User  @relation(fields: [userId], references: [id])
-  userId  Int
+  id        Int   @id @default(autoincrement())
+  sound     Sound @relation(fields: [soundId], references: [id])
+  soundId   Int
+  author    User  @relation("SoundsWithLikes", fields: [authorId], references: [id])
+  authorId  Int
+  likedBy   User  @relation("LikedSounds", fields: [likedById], references: [id])
+  likedById Int
 }

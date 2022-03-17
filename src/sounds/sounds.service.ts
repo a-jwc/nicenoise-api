@@ -38,9 +38,13 @@ export class SoundsService {
     const idNum = +id;
     return this.prismaService.user.findMany({
       where: { id: idNum },
-      include: { Sounds: { orderBy: [{ uploadDate: order }] } },
+      include: { sounds: { orderBy: [{ uploadDate: order }] } },
     });
   }
+
+  // async readFilteredByLikes() {
+  //   return this.prismaService.user.findMany
+  // }
 
   async stream(
     id: Prisma.SoundWhereUniqueInput,

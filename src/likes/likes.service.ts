@@ -7,11 +7,11 @@ export class LikesService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async create(data: Prisma.LikesCreateInput): Promise<Likes> | null {
-    const userId: number = +data.likedBy.connect.id;
-    const soundId: number = +data.Sound.connect.id;
+    const likedById: number = +data.likedBy.connect.id;
+    const soundId: number = +data.sound.connect.id;
     try {
       const like = await this.prismaService.likes.findFirst({
-        where: { userId, soundId },
+        where: { likedById, soundId },
       });
       // console.log(like);
       if (like === null) {
