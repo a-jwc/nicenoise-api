@@ -105,4 +105,17 @@ export class SoundsService {
       where,
     });
   }
+
+  async aggCount(id: number): Promise<number> {
+    try {
+      const sound = await this.prismaService.sound.findUnique({
+        where: { id },
+        select: { likes: true },
+      });
+      return sound.likes.length;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  }
 }

@@ -23,14 +23,12 @@ import { diskStorage } from 'multer';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { SoundsService } from './sounds.service';
 import { v4 as uuidv4 } from 'uuid';
-import { LikesService } from 'src/likes/likes.service';
 import { UsersService } from 'src/users/users.service';
 
 @Controller('api/v1/sounds')
 export class SoundsController {
   constructor(
     private readonly soundService: SoundsService,
-    private readonly likesService: LikesService,
     private readonly userService: UsersService,
   ) {}
 
@@ -80,6 +78,12 @@ export class SoundsController {
     return response.status(HttpStatus.CREATED).json({ newSound });
   }
 
+  @Get('count-likes/:id')
+  async countLikes(@Param('id') id) {
+    const soundId = +id;
+    return await this.soundService.aggCount(soundId);
+  }
+
   @Get('info/:id')
   async get(@Param('id') id) {
     return await this.soundService.readById(id);
@@ -114,21 +118,17 @@ export class SoundsController {
   @Post('like/:id')
   async like(@Param('id') id, @Req() req, @Res() res: Response) {
     const sound = await this.soundService.readById(id);
-    const likedByUser = await this.userService.user({ id: req.user.id });
-    const author = await this.userService.user({ id: sound.authorId });
-    const data: Prisma.LikesCreateInput = {
-      sound: { connect: { id: sound.id } },
-      likedBy: { connect: { id: likedByUser.id } },
-      author: { connect: { id: author.id } },
-    };
-    const likes = await this.likesService.create(data);
+    const likes = await this.userService.updateUserMany({
+      where: { id: req.user.id },
+      data: { likes: { connect: { id: sound.id } } },
+    });
     if (likes === null) {
       res.status(HttpStatus.FORBIDDEN).send({ message: 'Already liked' });
       return;
     }
     const soundId: number = +id;
-    const likesCount = await this.likesService.aggCount(soundId);
-    const update = await this.soundService.updateSound({
+    const likesCount = await this.soundService.aggCount(soundId);
+    await this.soundService.updateSound({
       where: { id: sound.id },
       data: { likesCount },
     });

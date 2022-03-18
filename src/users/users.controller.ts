@@ -24,11 +24,20 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   async getProfile(@Req() req) {
-    const { password, ...result } =
-      await this.userService.getUserLikesSoundObject({
-        id: req.user.id,
-      });
+    const { password, ...result } = await this.userService.user({
+      id: req.user.id,
+    });
     return result;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('likes')
+  async getLikes(@Req() req) {
+    const userId: number = req.user.id;
+    const result = await this.userService.getUserLikesSoundObject({
+      id: req.user.id,
+    });
+    return result.likes;
   }
 
   @UseGuards(JwtAuthGuard)

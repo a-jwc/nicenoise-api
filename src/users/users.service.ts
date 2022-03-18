@@ -12,28 +12,36 @@ export class UsersService {
   ): Promise<User | null> {
     return this.prisma.user.findUnique({
       where: userWhereUniqueInput,
-    });
-  }
-
-  async getUserLikesSoundObject(
-    userWhereUniqueInput: Prisma.UserWhereUniqueInput,
-  ): Promise<User | null> {
-    return this.prisma.user.findUnique({
-      where: userWhereUniqueInput,
       include: {
-        likes: {
-          include: {
-            sound: true,
-          },
-        },
+        likes: true,
         sounds: true,
       },
     });
   }
 
+  async getUserLikesSoundObject(
+    userWhereUniqueInput: Prisma.UserWhereUniqueInput,
+  ): Promise<any> {
+    const userLikes: Prisma.UserInclude = {
+      likes: {},
+      sounds: true,
+    };
+    const temp = this.prisma.user.findUnique({
+      where: userWhereUniqueInput,
+      include: userLikes,
+    });
+
+    console.log(temp);
+    return temp;
+  }
+
   async getUserLikesAuthorInfo(
     userWhereUniqueInput: Prisma.UserWhereUniqueInput,
   ) {
+    const userLikes: Prisma.UserSelect = {
+      likes: true,
+    };
+    return userLikes.sounds;
     return this.prisma.user.findUnique({
       where: userWhereUniqueInput,
       select: {
@@ -75,6 +83,17 @@ export class UsersService {
   }
 
   async updateUser(params: {
+    where: Prisma.UserWhereUniqueInput;
+    data: Prisma.UserUpdateInput;
+  }): Promise<User> {
+    const { where, data } = params;
+    return this.prisma.user.update({
+      data,
+      where,
+    });
+  }
+
+  async updateUserMany(params: {
     where: Prisma.UserWhereUniqueInput;
     data: Prisma.UserUpdateInput;
   }): Promise<User> {
