@@ -15,33 +15,21 @@ model User {
   email    String  @unique
   username String  @unique
   password String
-  sounds   Sound[]
+  sounds   Sound[] @relation("Author")
   avatar   String?
-  likes    Likes[] @relation("LikedSounds")
-  hasLikes Likes[] @relation("SoundsWithLikes")
+  likes    Sound[] @relation("Likes")
 }
 
 model Sound {
   id         Int      @id @default(autoincrement())
   title      String?
-  published  Boolean? @default(false)
-  author     User?    @relation(fields: [authorId], references: [id])
+  published  Boolean? @default(true)
+  author     User    @relation("Author", fields: [authorId], references: [id])
   authorName String
-  authorId   Int?
+  authorId   Int
   sound      String
   uploadDate DateTime @default(now())
   coverImage String?
-  likes      Likes[]
+  likes      User[]   @relation("Likes")
   likesCount Int      @default(0)
-}
-
-// store the author user
-model Likes {
-  id        Int   @id @default(autoincrement())
-  sound     Sound @relation(fields: [soundId], references: [id])
-  soundId   Int
-  author    User  @relation("SoundsWithLikes", fields: [authorId], references: [id])
-  authorId  Int
-  likedBy   User  @relation("LikedSounds", fields: [likedById], references: [id])
-  likedById Int
 }

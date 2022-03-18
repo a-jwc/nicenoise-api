@@ -6,7 +6,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { SoundsService } from './sounds.service';
 import { PrismaService } from 'src/prisma.service';
 import { UsersModule } from 'src/users/users.module';
-import { LikesModule } from 'src/likes/likes.module';
 
 @Module({
   imports: [
@@ -20,7 +19,6 @@ import { LikesModule } from 'src/likes/likes.module';
       }),
     }),
     UsersModule,
-    LikesModule,
   ],
   controllers: [SoundsController],
   providers: [SoundsService, PrismaService],
