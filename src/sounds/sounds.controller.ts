@@ -118,7 +118,7 @@ export class SoundsController {
   @Post('like/:id')
   async like(@Param('id') id, @Req() req, @Res() res: Response) {
     const sound = await this.soundService.readById(id);
-    const likes = await this.userService.updateUserMany({
+    const likes = await this.userService.updateUser({
       where: { id: req.user.id },
       data: { likes: { connect: { id: sound.id } } },
     });
