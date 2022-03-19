@@ -57,10 +57,17 @@ export class AuthService {
       if (user) return result;
     } catch (err) {
       if (err.code === PostgresErrorCode.UniqueViolation) {
-        throw new HttpException(
-          'User with the username already exists',
-          HttpStatus.BAD_REQUEST,
-        );
+        if (await this.usersService.user({ email: data.email })) {
+          throw new HttpException(
+            'User with this email already exists',
+            HttpStatus.BAD_REQUEST,
+          );
+        } else if (await this.usersService.user({ username: data.username })) {
+          throw new HttpException(
+            'User with this username already exists',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
       }
       throw new HttpException(
         'Something went wrong',
