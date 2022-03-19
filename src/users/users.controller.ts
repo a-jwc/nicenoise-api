@@ -20,6 +20,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Response } from 'express';
 import { Prisma } from '@prisma/client';
 import { SoundsService } from 'src/sounds/sounds.service';
+import { hashPassword } from 'src/helpers/auth';
 
 @Controller('api/v1/user')
 export class UserController {
@@ -103,6 +104,14 @@ export class UserController {
         data: { sounds: updateUserSounds },
       });
     }
+    if (data.password) {
+      const hashedPassword = await hashPassword(data.password as string);
+      await this.userService.updateUser({
+        where: { id: req.user.id },
+        data: { password: hashedPassword },
+      });
+    }
+
     return res.sendStatus(HttpStatus.OK);
   }
 }
