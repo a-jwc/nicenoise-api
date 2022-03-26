@@ -9,12 +9,25 @@ import { Request, Response } from 'express';
 import { createReadStream, statSync } from 'fs';
 import { PrismaService } from 'src/prisma.service';
 import { join } from 'path';
+import { download, upload } from 'src/aws/s3';
+import { s3Client } from 'src/aws/s3Client';
+import internal from 'stream';
 
 @Injectable()
 export class SoundsService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async create(data: Prisma.SoundCreateInput): Promise<Sound> {
+  async create(
+    data: Prisma.SoundCreateInput,
+    file: Express.Multer.File,
+  ): Promise<Sound> {
+    const bucketParams = {
+      Bucket: process.env.BUCKET_NAME,
+      Key: 'sounds/' + data.sound,
+      Body: file.buffer,
+    };
+    const uploadRes = await upload(s3Client, bucketParams);
+    console.log(uploadRes);
     return this.prismaService.sound.create({ data });
   }
 
@@ -68,16 +81,8 @@ export class SoundsService {
         const CHUNK_SIZE = 1 * 1e6;
         const start = Number(range.replace(/\D/g, ''));
         const contentType = 'audio/mpeg';
-        // if (start === 0) contentType = 'multipart/byteranges';
         const end = Math.min(start + CHUNK_SIZE, soundStat.size - 1);
-        // const soundLength = end - start + 1;
-        // response.status(206);
         response.header({
-          // 'Content-Range': `bytes ${start}-${end}/${soundStat.size}`,
-          // 'Content-Range': `bytes ${start}-${soundStat.size - 1}/${
-          //   soundStat.size
-          // }`,
-          // 'Accept-Ranges': 'bytes',
           'Content-length': soundStat.size,
           'Content-Type': contentType,
         });
@@ -87,6 +92,38 @@ export class SoundsService {
         throw new NotFoundException(null, 'range not found');
       }
     } catch (err) {
+      // if (err === NotFoundException) throw err;
+      throw new ServiceUnavailableException();
+    }
+  }
+
+  async streamFromS3(
+    id: Prisma.SoundWhereUniqueInput,
+    response: Response,
+    request: Request,
+  ) {
+    try {
+      const idNum = +id;
+      const sound = await this.prismaService.sound.findUnique({
+        where: { id: idNum },
+      });
+      const bucketParams = {
+        Bucket: process.env.BUCKET_NAME,
+        Key: 'sounds/' + sound.sound,
+      };
+      const data = await download(s3Client, bucketParams);
+      const stream = data.Body as internal.Readable;
+      const { range } = request.headers;
+      if (range) {
+        response.header({
+          'Content-Type': 'audio/mpeg',
+        });
+        stream.pipe(response);
+      } else {
+        throw new NotFoundException(null, 'range not found');
+      }
+    } catch (err) {
+      // if (err === NotFoundException) throw err;
       throw new ServiceUnavailableException();
     }
   }

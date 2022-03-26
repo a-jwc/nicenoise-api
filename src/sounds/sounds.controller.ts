@@ -19,7 +19,6 @@ import {
 } from '@nestjs/platform-express';
 import { Prisma, Sound } from '@prisma/client';
 import { Response, Request } from 'express';
-import { diskStorage } from 'multer';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { SoundsService } from './sounds.service';
 import { v4 as uuidv4 } from 'uuid';
@@ -39,42 +38,23 @@ export class SoundsController {
 
   @UseGuards(JwtAuthGuard)
   @Post('upload')
-  // @UseInterceptors(
-  //   FileFieldsInterceptor([
-  //     {
-  //       name: 'sound',
-  //       maxCount: 1,
-  //     },
-  //     { name: 'cover', maxCount: 1 },
-  //   ]),
-  // )
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './public/uploadedSounds',
-        filename: (_req, file, cb) => {
-          const ext = file.mimetype.split('/')[1];
-          cb(null, `${uuidv4()}-${Date.now()}.${ext}`);
-        },
-      }),
-    }),
-  )
+  @UseInterceptors(FileInterceptor('file'))
   async upload(
     @Res() response: Response,
     @Req() request,
     @Body() sound: Sound,
-    // @UploadedFiles()
-    // files: { sound?: Express.Multer.File[]; cover?: Express.Multer.File[] },
     @UploadedFile() file: Express.Multer.File,
   ) {
+    const ext = file.mimetype.split('/')[1];
+    const filename = `${uuidv4()}-${Date.now()}.${ext}`;
     const requestBody: Prisma.SoundCreateInput = {
       author: { connect: { id: request.user.id } },
       authorName: request.user.username,
       title: file.originalname,
-      sound: file.filename,
+      sound: filename,
       uploadDate: new Date(Date.now()).toISOString(),
     };
-    const newSound = await this.soundService.create(requestBody);
+    const newSound = await this.soundService.create(requestBody, file);
     return response.status(HttpStatus.CREATED).json({ newSound });
   }
 
@@ -95,7 +75,7 @@ export class SoundsController {
     @Res() response: Response,
     @Req() request: Request,
   ) {
-    return await this.soundService.stream(id, response, request);
+    return await this.soundService.streamFromS3(id, response, request);
   }
 
   // @Post('delete/:id')
