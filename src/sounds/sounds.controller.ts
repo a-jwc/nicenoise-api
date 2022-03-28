@@ -9,20 +9,16 @@ import {
   Req,
   Res,
   UploadedFile,
-  UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import {
-  FileFieldsInterceptor,
-  FileInterceptor,
-} from '@nestjs/platform-express';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { Prisma, Sound } from '@prisma/client';
 import { Response, Request } from 'express';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { SoundsService } from './sounds.service';
-import { v4 as uuidv4 } from 'uuid';
 import { UsersService } from 'src/users/users.service';
+import { createFileName } from 'src/utils/fileUtils';
 
 @Controller('api/v1/sounds')
 export class SoundsController {
@@ -45,8 +41,7 @@ export class SoundsController {
     @Body() sound: Sound,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    const ext = file.mimetype.split('/')[1];
-    const filename = `${uuidv4()}-${Date.now()}.${ext}`;
+    const filename = createFileName(file);
     const requestBody: Prisma.SoundCreateInput = {
       author: { connect: { id: request.user.id } },
       authorName: request.user.username,
