@@ -2,7 +2,6 @@ import {
   Controller,
   Get,
   UseGuards,
-  Request,
   Res,
   Req,
   Post,
@@ -13,14 +12,13 @@ import {
   Put,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { UsersService } from './users.service';
-import { v4 as uuidv4 } from 'uuid';
 import { Response } from 'express';
 import { Prisma } from '@prisma/client';
 import { SoundsService } from 'src/sounds/sounds.service';
 import { hashPassword } from 'src/helpers/auth';
+import { createFileName } from 'src/utils/fileUtils';
 
 @Controller('api/v1/user')
 export class UserController {
@@ -55,22 +53,16 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Post('update-avatar')
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './public/images',
-        filename: (_req, file, cb) => {
-          const ext = file.mimetype.split('/')[1];
-          cb(null, `${uuidv4()}-${Date.now()}.${ext}`);
-        },
-      }),
-    }),
-  )
+  @UseInterceptors(FileInterceptor('file'))
   async updateAvatar(@Req() req, @UploadedFile() file: Express.Multer.File) {
-    const avatar = await this.userService.updateUser({
-      where: { id: req.user.id },
-      data: { avatar: file.filename },
-    });
+    const filename = createFileName(file);
+    const avatar = await this.userService.updateUserAvatar(
+      {
+        where: { id: req.user.id },
+        data: { avatar: filename },
+      },
+      file,
+    );
     return avatar;
   }
 
@@ -81,7 +73,7 @@ export class UserController {
       id: req.user.id,
     });
     if (avatar === null) return res.sendStatus(HttpStatus.NOT_FOUND);
-    return res.sendFile(avatar, { root: 'public/images' });
+    return await this.userService.getUserAvatar(avatar, res);
   }
 
   @UseGuards(JwtAuthGuard)
