@@ -83,17 +83,19 @@ export class UserController {
     @Res() res: Response,
     @Body() data: Prisma.UserUpdateInput,
   ) {
-    await this.userService.updateUser({
-      where: { id: req.user.id },
-      data,
-    });
     if (data.username) {
       const updateUserSounds: Prisma.SoundUpdateManyWithoutAuthorInput = {
         updateMany: { where: {}, data: { authorName: data.username } },
       };
       await this.userService.updateUser({
         where: { id: req.user.id },
-        data: { sounds: updateUserSounds },
+        data: { sounds: updateUserSounds, username: data.username },
+      });
+    }
+    if (data.email) {
+      await this.userService.updateUser({
+        where: { id: req.user.id },
+        data: { email: data.email },
       });
     }
     if (data.password) {
@@ -104,6 +106,8 @@ export class UserController {
       });
     }
 
-    return res.sendStatus(HttpStatus.OK);
+    return res
+      .status(HttpStatus.OK)
+      .send({ message: 'User account information updated.' });
   }
 }
