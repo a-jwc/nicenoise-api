@@ -10,6 +10,7 @@ import {
   HttpStatus,
   Body,
   Put,
+  Param,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -28,15 +29,6 @@ export class UserController {
   ) {}
 
   @UseGuards(JwtAuthGuard)
-  @Get('profile')
-  async getProfile(@Req() req) {
-    const { password, ...result } = await this.userService.user({
-      id: req.user.id,
-    });
-    return result;
-  }
-
-  @UseGuards(JwtAuthGuard)
   @Get('likes')
   async getLikes(@Req() req) {
     const result = await this.userService.getUserLikesSoundObject({
@@ -45,10 +37,23 @@ export class UserController {
     return result.likes;
   }
 
+  @Get('get-avatar/:username')
+  async getAvatar(
+    @Param('username') username,
+    @Req() req,
+    @Res() res: Response,
+  ) {
+    const { avatar } = await this.userService.user({
+      username,
+    });
+    if (avatar === null) return res.sendStatus(HttpStatus.NOT_FOUND);
+    return await this.userService.getUserAvatar(avatar, res);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get('is-logged-in')
   isLoggedIn(@Req() req, @Res() res) {
-    return res.send(true);
+    return res.send({ status: true, username: req.user.username });
   }
 
   @UseGuards(JwtAuthGuard)
@@ -64,16 +69,6 @@ export class UserController {
       file,
     );
     return avatar;
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get('get-avatar')
-  async getAvatar(@Req() req, @Res() res: Response) {
-    const { avatar } = await this.userService.user({
-      id: req.user.id,
-    });
-    if (avatar === null) return res.sendStatus(HttpStatus.NOT_FOUND);
-    return await this.userService.getUserAvatar(avatar, res);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -109,5 +104,15 @@ export class UserController {
     return res
       .status(HttpStatus.OK)
       .send({ message: 'User account information updated.' });
+  }
+
+  @Get(':username')
+  async getProfile(@Param('username') username, @Req() req) {
+    const { password, ...user } = await this.userService.userWithLikesAndSounds(
+      {
+        username,
+      },
+    );
+    return user;
   }
 }
