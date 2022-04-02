@@ -8,7 +8,6 @@ import { Request, Response } from 'express';
 import { PrismaService } from 'src/prisma.service';
 import { download, upload } from 'src/aws/s3';
 import { s3Client } from 'src/aws/s3Client';
-import internal from 'stream';
 
 @Injectable()
 export class SoundsService {
@@ -68,22 +67,8 @@ export class SoundsService {
         Key: 'sounds/' + sound.sound,
       };
       const data = await download(s3Client, bucketParams);
-      const stream = data.Body as internal.Readable;
-      const { range } = request.headers;
-      if (range) {
-        const start = Number(range.replace(/\D/g, ''));
-        const contentLength = data.ContentLength;
-        response.header({
-          'Content-Range':
-            'bytes ' + start + '-' + contentLength + '/' + contentLength,
-          'Accept-Ranges': 'bytes',
-          'Content-Type': 'audio/webm',
-          'Content-Length': contentLength,
-        });
-        stream.pipe(response);
-      } else {
-        throw new NotFoundException(null, 'range not found');
-      }
+      // stream.pipe(response);
+      return data;
     } catch (err) {
       throw new ServiceUnavailableException();
     }

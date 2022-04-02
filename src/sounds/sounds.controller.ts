@@ -19,6 +19,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { SoundsService } from './sounds.service';
 import { UsersService } from 'src/users/users.service';
 import { createFileName } from 'src/utils/fileUtils';
+import internal from 'node:stream';
 
 @Controller('api/v1/sounds')
 export class SoundsController {
@@ -70,7 +71,15 @@ export class SoundsController {
     @Res() response: Response,
     @Req() request: Request,
   ) {
-    return await this.soundService.streamFromS3(id, response, request);
+    const data = await this.soundService.streamFromS3(id, response, request);
+    const stream = data.Body as internal.Readable;
+    const contentLength = data.ContentLength;
+    response.set({
+      'Accept-Ranges': 'bytes',
+      'Content-Length': contentLength,
+      'Content-Type': 'audio/webm',
+    });
+    stream.pipe(response);
   }
 
   // @Post('delete/:id')
