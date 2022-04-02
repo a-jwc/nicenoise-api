@@ -39,30 +39,6 @@ export class UsersService {
     return temp;
   }
 
-  async getUserLikesAuthorInfo(
-    userWhereUniqueInput: Prisma.UserWhereUniqueInput,
-  ) {
-    const userLikes: Prisma.UserSelect = {
-      likes: true,
-    };
-    return userLikes.sounds;
-    return this.prisma.user.findUnique({
-      where: userWhereUniqueInput,
-      select: {
-        ...exclude('user', ['password']),
-        likes: {
-          include: {
-            sound: {
-              select: {
-                ...exclude('user', ['password']),
-              },
-            },
-          },
-        },
-      },
-    });
-  }
-
   async users(params: {
     skip?: number;
     take?: number;
