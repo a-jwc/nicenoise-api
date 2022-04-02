@@ -16,6 +16,14 @@ export class UsersService {
   ): Promise<User | null> {
     return this.prisma.user.findUnique({
       where: userWhereUniqueInput,
+    });
+  }
+
+  async userWithLikesAndSounds(
+    userWhereUniqueInput: Prisma.UserWhereUniqueInput,
+  ): Promise<User | null> {
+    return this.prisma.user.findUnique({
+      where: userWhereUniqueInput,
       include: {
         likes: true,
         sounds: true,
@@ -110,6 +118,8 @@ export class UsersService {
     const data = await download(s3Client, bucketParams);
     const stream = data.Body as internal.Readable;
     const contentLength = data.ContentLength;
+    // console.log(stream.readableLength);
+    // console.log(stream.readableHighWaterMark);
     response.header({
       'Content-Type': 'image/jpeg',
       'Content-Length': contentLength,
