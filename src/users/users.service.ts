@@ -110,6 +110,26 @@ export class UsersService {
     });
   }
 
+  async deleteUserAvatar(params: {
+    where: Prisma.UserWhereUniqueInput;
+    data: Prisma.UserUpdateInput;
+  }) {
+    const { where, data } = params;
+    const oldAvatar = await this.prisma.user.findUnique({
+      where,
+      select: { avatar: true },
+    });
+    const bucketDeleteParams = {
+      Bucket: process.env.BUCKET_NAME,
+      Key: 'images/' + oldAvatar.avatar,
+    };
+    const deletedRes = await deleteObject(s3Client, bucketDeleteParams);
+    return this.prisma.user.update({
+      where,
+      data,
+    });
+  }
+
   async getUserAvatar(avatar: string, response: Response) {
     const bucketParams = {
       Bucket: process.env.BUCKET_NAME,

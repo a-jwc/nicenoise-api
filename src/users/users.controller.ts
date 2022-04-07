@@ -72,6 +72,15 @@ export class UserController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Post('delete-avatar')
+  async deleteAvatar(@Req() req) {
+    return await this.userService.deleteUserAvatar({
+      where: { id: req.user.id },
+      data: { avatar: null },
+    });
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Put('update-user')
   async updateUserInfo(
     @Req() req,
