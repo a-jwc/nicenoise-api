@@ -19,7 +19,7 @@ export class UsersService {
     });
   }
 
-  async userWithLikesAndSounds(
+  async userWithObjects(
     userWhereUniqueInput: Prisma.UserWhereUniqueInput,
   ): Promise<User | null> {
     return this.prisma.user.findUnique({
@@ -27,6 +27,8 @@ export class UsersService {
       include: {
         likes: true,
         sounds: true,
+        followedBy: { select: { username: true } },
+        following: { select: { username: true } },
       },
     });
   }

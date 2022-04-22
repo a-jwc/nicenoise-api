@@ -115,13 +115,31 @@ export class UserController {
       .send({ message: 'User account information updated.' });
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Post('follow/:username')
+  async followUser(@Param('username') username, @Req() req) {
+    return await this.userService.updateUser({
+      where: { username },
+      data: { followedBy: { connect: { id: req.user.id } } },
+    });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('unfollow/:username')
+  async unfollowUser(@Param('username') username, @Req() req) {
+    return await this.userService.updateUser({
+      where: { username },
+      data: {
+        followedBy: { disconnect: { id: req.user.id } },
+      },
+    });
+  }
+
   @Get(':username')
   async getProfile(@Param('username') username, @Req() req) {
-    const { password, ...user } = await this.userService.userWithLikesAndSounds(
-      {
-        username,
-      },
-    );
+    const { password, ...user } = await this.userService.userWithObjects({
+      username,
+    });
     return user;
   }
 }
